@@ -390,7 +390,8 @@ void CPU_HydroGravitySolver(
                         EoS.GuessHTilde_FuncPtr, EoS.HTilde2Temp_FuncPtr, EoS.AuxArrayDevPtr_Flt,
                         EoS.AuxArrayDevPtr_Int, EoS.Table, NULL, &LorentzFactor_new );
 
-         rho_new = Prim_new[0];
+         rho_new = Cons_new[DENS];
+         rho_new += -Cons_new[DENS]*(Prim_new[1]*acc_new[0]+Prim_new[2]*acc_new[1]+Prim_new[3]*acc_new[2])
          px_new  = Cons_new[MOMX];
          py_new  = Cons_new[MOMY];
          pz_new  = Cons_new[MOMZ];
@@ -410,6 +411,18 @@ void CPU_HydroGravitySolver(
 #        endif // #ifdef SRHD ... else ...
 
 //       update the momentum density
+#        ifdef SRHD
+         real HTilde = EoS.Temp2HTilde_FuncPtr( Temperature, NULL, EoS.AuxArrayDevPtr_Flt, EoS.AuxArrayDevPtr_Int, EoS.Table );
+         real h = HTilde + (real)1.0;
+
+         px_new += rho_new*h*LorentzFactor_new*acc_new[0];
+         py_new += rho_new*h*LorentzFactor_new*acc_new[1];
+         pz_new += rho_new*h*LorentzFactor_new*acc_new[2];
+
+         g_Flu_Array_New[P][MOMX][idx_g0] = px_new;
+         g_Flu_Array_New[P][MOMY][idx_g0] = py_new;
+         g_Flu_Array_New[P][MOMZ][idx_g0] = pz_new;
+#        else // #ifdef SRHD
          px_new += rho_new*acc_new[0];
          py_new += rho_new*acc_new[1];
          pz_new += rho_new*acc_new[2];
@@ -417,20 +430,17 @@ void CPU_HydroGravitySolver(
          g_Flu_Array_New[P][MOMX][idx_g0] = px_new;
          g_Flu_Array_New[P][MOMY][idx_g0] = py_new;
          g_Flu_Array_New[P][MOMZ][idx_g0] = pz_new;
+#        endif // #ifdef SRHD ... else ...
 
 //       for the splitting method, we ensure that the internal energy is unchanged
 #        ifdef SRHD
          real Msqr = SQR(px_new) + SQR(py_new) + SQR(pz_new);
          real Dsqr = SQR(Cons_new[DENS]);
-         real HTilde = EoS.Temp2HTilde_FuncPtr( Temperature, NULL, EoS.AuxArrayDevPtr_Flt, EoS.AuxArrayDevPtr_Int, EoS.Table );
-         real h = HTilde + (real)1.0;
-         real factor1 = Msqr / Dsqr / h / h;
-         real factor2 = SQRT( (real)1.0 + factor1 );
+         real factor1 = Msqr / Dsqr / h / h; // Lorentz factor^{2}*v^{2} = (M/Dh)^{2}
+         real factor2 = SQRT( (real)1.0 + factor1 ); // Lorentz factor = (1 + Lorentz factor^{2}*v^{2})^{1/2}
 
-         Cons_new[ENGY]  = factor1 / ( (real)1.0 + factor2 );
-         Cons_new[ENGY] += HTilde * factor2;
-         Cons_new[ENGY] -= Temperature / factor2;
-         Etot_out = Cons_new[ENGY] * Cons_new[DENS];
+         Cons_new[ENGY] = (h * factor2 - Temperature / factor2 - (real)1.0) * rho_new;
+         Etot_out = Cons_new[ENGY];
 #        else // #ifdef SRHD
          Ekin_out = _rho2*( SQR(px_new) + SQR(py_new) + SQR(pz_new) );
          Etot_out = Enki_in + Ekin_out;
