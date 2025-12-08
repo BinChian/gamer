@@ -391,7 +391,7 @@ void CPU_HydroGravitySolver(
                         EoS.AuxArrayDevPtr_Int, EoS.Table, NULL, &LorentzFactor_new );
 
          rho_new = Cons_new[DENS];
-         rho_new += -Cons_new[DENS]*(Prim_new[1]*acc_new[0]+Prim_new[2]*acc_new[1]+Prim_new[3]*acc_new[2])
+         rho_new += -Cons_new[DENS]*(Prim_new[1]*acc_new[0]+Prim_new[2]*acc_new[1]+Prim_new[3]*acc_new[2]);
          px_new  = Cons_new[MOMX];
          py_new  = Cons_new[MOMY];
          pz_new  = Cons_new[MOMZ];
