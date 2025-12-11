@@ -582,11 +582,17 @@ void SetArrayDisk()
    char TableFileName[] = "FermiBubble_IC";
    ReadBinFile( TableFileName, &buffer );
 
-   int headerSize = (int)buffer[0];
+   // int headerSize = (int)buffer[0];
+   double *DoubleBox = (double*)buffer;
+   int headerSize = (int)DoubleBox[0];
 
    Header_disk = (real*)malloc( (size_t)headerSize * sizeof(real) );
 
-   memcpy( Header_disk, buffer, (size_t)headerSize * sizeof(real) );
+   // memcpy( Header_disk, buffer, (size_t)headerSize * sizeof(real) );
+   for ( int i = 0; i < headerSize; i++ )
+   {
+      Header_disk[i] = (real)DoubleBox[i];
+   }
 
    ParticleMass = Header_disk[8] * Header_disk[9];
 
@@ -1279,7 +1285,11 @@ int Flu_ResetByUser_FermiBubble( real fluid[], const double Emag, const double x
 #        if ( NCOMP_PASSIVE_USER > 0 )
          fluid[Passive_0000] = 0.0;
          fluid[Passive_0001] = fluid[DENS];
+#        ifdef COSMIC_RAY
          fluid[Passive_0002] = Jet_Src_CR_Engy * Jet_SrcGamma;
+#        else
+         fluid[Passive_0002] = 0.0;
+#        endif
 #        endif
 
 #        ifdef COSMIC_RAY
@@ -1326,7 +1336,11 @@ int Flu_ResetByUser_FermiBubble( real fluid[], const double Emag, const double x
 #        if ( NCOMP_PASSIVE_USER > 0 )
          fluid[Passive_0000] = 0.0;
          fluid[Passive_0001] = fluid[DENS];
+#        ifdef COSMIC_RAY
          fluid[Passive_0002] = Jet_Src_CR_Engy * Jet_SrcGamma;
+#        else
+         fluid[Passive_0002] = 0.0;
+#        endif
 #        endif
 
 #        ifdef COSMIC_RAY
