@@ -553,10 +553,13 @@
 //    Ada: 890 (sm_89).
 //
 //    Hopper: 900 (sm_90).
+//
+//    BLACKWELL: 1200 (sm_120).
 #  if   ( GPU_COMPUTE_CAPABILITY != 700 && GPU_COMPUTE_CAPABILITY != 720 && GPU_COMPUTE_CAPABILITY != 750 \
       &&  GPU_COMPUTE_CAPABILITY != 800 && GPU_COMPUTE_CAPABILITY != 860 && GPU_COMPUTE_CAPABILITY != 870 \
       &&  GPU_COMPUTE_CAPABILITY != 890 \
-      &&  GPU_COMPUTE_CAPABILITY != 900 )
+      &&  GPU_COMPUTE_CAPABILITY != 900 \
+      &&  GPU_COMPUTE_CAPABILITY != 1200 )
 #     error : ERROR : GPU_COMPUTE_CAPABILITY unsupported by cuFFTdx (please visit cuFFTdx website to check whether your GPU is supported and update CUFLU.h accordingly if it is) !!
 #  endif
 
